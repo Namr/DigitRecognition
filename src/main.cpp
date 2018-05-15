@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <fstream>
 #include <algorithm>
+#include <cmath>
 #include <vector>
 
 #include <Eigen/Dense>
+#include <Eigen/Core>
 
 using namespace Eigen;
 using namespace std;
@@ -14,38 +16,55 @@ template <class T>
 void endswap(T *objp);
 vector<VectorXd> readDigitImages(const char* filepath);
 
+double sigmoid(double x);
+VectorXd forwardProp(MatrixXd *weightLayers, VectorXd *biasLayers, int *layerWidth, VectorXd startLayer, int layerCount);
 
 int main(int argc, char **argv)
 {
   
   //goal of this project is to have a standard NN with 2 hidden layers with 16 nodes in each layer
   //should be able to identify the digits from the database
-  int hiddenLayerCount = 2;
-  int hiddenLayerWidth = 16;
+  int layerCount = 3;
+  int layerWidth[layerCount] = {16, 16, 10};
 
   //read digits from the database put them into Vectors
   vector<VectorXd> digitImages = readDigitImages("train-images.idx3-ubyte");
   
   //init arrays of hiddenlayer matricies based on the # of hidden layers
-  MatrixXd weightLayers[hiddenLayerCount];
-  VectorXd biasLayers[hiddenLayerCount];
+  MatrixXd weightLayers[layerCount];
+  VectorXd biasLayers[layerCount];
 
-  //this stores the current layer that is being operated on (latest product of matrix multiplication)
-  VectorXd currentLayer = digitImages[0];
+  VectorXd output = forwardProp(&weightLayers[0], &biasLayers[0], &layerWidth[0], digitImages[0], layerCount);
   
-  for(int i = 0; i < hiddenLayerCount; i++)
-  {
-    weightLayers[i] = MatrixXd::Random(hiddenLayerWidth, currentLayer.rows());
-    biasLayers[i] = VectorXd::Random(hiddenLayerWidth);
+  cout << "FIRST PASS" << endl;
+  cout << output << endl;
 
-    currentLayer = (weightLayers[i] * currentLayer) + biasLayers[i];
-  }
-  
-  cout << currentLayer << endl;
-  
+  output = forwardProp(&weightLayers[0], &biasLayers[0], &layerWidth[0], digitImages[0], layerCount);
+
+  cout << "SECOND PASS" << endl;
+  cout << output << endl;
   return 0;
 }
 
+double sigmoid(double x)
+{
+  return 1 / (1 + exp(-x));
+}
+
+VectorXd forwardProp(MatrixXd *weightLayers, VectorXd *biasLayers, int *layerWidth, VectorXd startLayer, int layerCount)
+{
+  for(int i = 0; i < layerCount; i++)
+  {
+    if(weightLayers[i].isZero(0))
+    {
+      weightLayers[i] = MatrixXd::Random(layerWidth[i], startLayer.rows());
+      biasLayers[i] = VectorXd::Random(layerWidth[i]);
+    }
+    startLayer = (weightLayers[i] * startLayer) + biasLayers[i];
+    startLayer = startLayer.unaryExpr(&sigmoid);
+  }
+  return startLayer;
+}
 
 vector<VectorXd> readDigitImages(const char* filepath)
 {
