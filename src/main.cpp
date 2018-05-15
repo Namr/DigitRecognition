@@ -12,28 +12,38 @@ using namespace std;
 //reverses endianness
 template <class T>
 void endswap(T *objp);
+vector<VectorXd> readDigitImages(const char* filepath);
 
 
 int main(int argc, char **argv)
 {
 
-    VectorXd inputLayer(784);
-    MatrixXd HiddenLayer(16, 784);
+    vector<VectorXd> digitImages = readDigitImages("train-images.idx3-ubyte");
 
-    ifstream imageFile ("train-images.idx3-ubyte", ios::in | ios::binary);
+    cout << "Matrix: " << digitImages[0] << std::endl;
 
+    return 0;
+}
+
+
+vector<VectorXd> readDigitImages(const char* filepath)
+{
+    //init file stream
+    ifstream imageFile (filepath, ios::in | ios::binary);
+    vector<VectorXd> digits;
+
+    //if file not found, error out
     if(imageFile.fail())
     {
         cout << "ERROR: Image not found" << std::endl;
-        return 1;
+        return digits;
     }
 
+    //magic constant to ensure that endianness is correct
     int32_t magic;
     imageFile.read(reinterpret_cast<char *>(&magic), sizeof(magic));
     endswap(&magic);
 
-    cout << magic << std::endl;
-     
     uint32_t imageCount;
     imageFile.read(reinterpret_cast<char *>(&imageCount), sizeof(imageCount));
     endswap(&imageCount);
@@ -46,28 +56,26 @@ int main(int argc, char **argv)
     imageFile.read(reinterpret_cast<char *>(&colSize), sizeof(colSize));
     endswap(&colSize);
 
-    //loop through MRI file and seperate each pixel into its x,y,z cordinate
-    for (int row = 0; row < rowSize; row++)
+    //iterate over every digit image, then iterate over all their rows and cols until a flattened vector is all that is left
+    for(int i = 0; i < imageCount; i++)
     {
-        for (int col = 0; col < colSize; col++)
+        VectorXd inputLayer(rowSize * colSize);
+        //loop through MRI file and seperate each pixel into its x,y,z cordinate
+        for (int row = 0; row < rowSize; row++)
         {
-            //place data into a char buffer and then reinterpret into an unsigned char
-            char pix[1];
-            imageFile.read(pix, 1);
-	    endswap(&pix);
-	    
-            inputLayer((row * rowSize) + col) = (double) reinterpret_cast<unsigned char&>(pix[0]) / 255;
+            for (int col = 0; col < colSize; col++)
+            {
+                //place data into a char buffer and then reinterpret into an unsigned char
+                char pix[1];
+                imageFile.read(pix, 1);
+                endswap(&pix);
+
+                inputLayer((row * rowSize) + col) = (double) reinterpret_cast<unsigned char&>(pix[0]) / 255;
+            }
         }
+        digits.push_back(inputLayer);
     }
-
-    cout << "Matrix: " << inputLayer << std::endl;
-
-    return 0;
-}
-
-
-vector<VectorXd> readDigitImages()
-{
+    return digits;
 }
 
 //reverses endianness
