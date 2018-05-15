@@ -11,13 +11,12 @@
 using namespace Eigen;
 using namespace std;
 
-//reverses endianness
+VectorXd forwardProp(MatrixXd *weightLayers, VectorXd *biasLayers, int *layerWidth, VectorXd startLayer, int layerCount);
+double sigmoid(double x);
+
+vector<VectorXd> readDigitImages(const char* filepath);
 template <class T>
 void endswap(T *objp);
-vector<VectorXd> readDigitImages(const char* filepath);
-
-double sigmoid(double x);
-VectorXd forwardProp(MatrixXd *weightLayers, VectorXd *biasLayers, int *layerWidth, VectorXd startLayer, int layerCount);
 
 int main(int argc, char **argv)
 {
@@ -43,27 +42,31 @@ int main(int argc, char **argv)
 
   cout << "SECOND PASS" << endl;
   cout << output << endl;
+  
   return 0;
-}
-
-double sigmoid(double x)
-{
-  return 1 / (1 + exp(-x));
 }
 
 VectorXd forwardProp(MatrixXd *weightLayers, VectorXd *biasLayers, int *layerWidth, VectorXd startLayer, int layerCount)
 {
   for(int i = 0; i < layerCount; i++)
   {
+    //if the matrix has not been made, fill it with random values
     if(weightLayers[i].isZero(0))
     {
       weightLayers[i] = MatrixXd::Random(layerWidth[i], startLayer.rows());
       biasLayers[i] = VectorXd::Random(layerWidth[i]);
     }
+    
+    //propagate through a layer, and loop till all layers are complete
     startLayer = (weightLayers[i] * startLayer) + biasLayers[i];
     startLayer = startLayer.unaryExpr(&sigmoid);
   }
   return startLayer;
+}
+
+double sigmoid(double x)
+{
+  return 1 / (1 + exp(-x));
 }
 
 vector<VectorXd> readDigitImages(const char* filepath)
@@ -100,7 +103,6 @@ vector<VectorXd> readDigitImages(const char* filepath)
   for(int i = 0; i < imageCount; i++)
   {
     VectorXd inputLayer(rowSize * colSize);
-    //loop through MRI file and seperate each pixel into its x,y,z cordinate
     for (int row = 0; row < rowSize; row++)
     {
       for (int col = 0; col < colSize; col++)
@@ -109,7 +111,8 @@ vector<VectorXd> readDigitImages(const char* filepath)
         char pix[1];
         imageFile.read(pix, 1);
         endswap(&pix);
-
+	
+	//value inside the file is between 0 and 255, our net expected a value between 0 and 1
         inputLayer((row * rowSize) + col) = (double) reinterpret_cast<unsigned char&>(pix[0]) / 255;
       }
     }
