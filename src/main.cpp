@@ -17,17 +17,32 @@ vector<VectorXd> readDigitImages(const char* filepath);
 
 int main(int argc, char **argv)
 {
-
+  
   //goal of this project is to have a standard NN with 2 hidden layers with 16 nodes in each layer
   //should be able to identify the digits from the database
+  int hiddenLayerCount = 2;
+  int hiddenLayerWidth = 16;
+
+  //read digits from the database put them into Vectors
   vector<VectorXd> digitImages = readDigitImages("train-images.idx3-ubyte");
   
-  //first layer of weights 16 neurons for the hidden layers, 
-  MatrixXd weightLayer0 = MatrixXd::Random(16, digitImages[0].cols());
-  VectorXd baisLayer0 = VectorXd::Random(digitImages[0].cols());
-  
-  VectorXd layer1 = (digitImages[0].sum() * weightLayer0) + baisLayer0;
+  //init arrays of hiddenlayer matricies based on the # of hidden layers
+  MatrixXd weightLayers[hiddenLayerCount];
+  VectorXd biasLayers[hiddenLayerCount];
 
+  //this stores the current layer that is being operated on (latest product of matrix multiplication)
+  VectorXd currentLayer = digitImages[0];
+  
+  for(int i = 0; i < hiddenLayerCount; i++)
+  {
+    weightLayers[i] = MatrixXd::Random(hiddenLayerWidth, currentLayer.rows());
+    biasLayers[i] = VectorXd::Random(hiddenLayerWidth);
+
+    currentLayer = (weightLayers[i] * currentLayer) + biasLayers[i];
+  }
+  
+  cout << currentLayer << endl;
+  
   return 0;
 }
 
