@@ -1,17 +1,17 @@
 #include <iostream>
 #include <stdio.h>
 #include <fstream>
-#include <algorithm>
 #include <cmath>
 #include <vector>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
+#include "network.hpp"
+
 using namespace Eigen;
 using namespace std;
 
-VectorXd forwardProp(MatrixXd *weightLayers, VectorXd *biasLayers, int *layerWidth, VectorXd startLayer, int layerCount);
 double sigmoid(double x);
 
 vector<VectorXd> readDigitImages(const char* filepath);
@@ -19,49 +19,22 @@ template <class T>
 void endswap(T *objp);
 
 int main(int argc, char **argv)
-{
-  
-  //goal of this project is to have a standard NN with 2 hidden layers with 16 nodes in each layer
-  //should be able to identify the digits from the database
-  int layerCount = 3;
-  int layerWidth[layerCount] = {16, 16, 10};
-
+{ 
   //read digits from the database put them into Vectors
   vector<VectorXd> digitImages = readDigitImages("train-images.idx3-ubyte");
-  
-  //init arrays of hiddenlayer matricies based on the # of hidden layers
-  MatrixXd weightLayers[layerCount];
-  VectorXd biasLayers[layerCount];
 
-  VectorXd output = forwardProp(&weightLayers[0], &biasLayers[0], &layerWidth[0], digitImages[0], layerCount);
+  int shape[] = {16, 16, 10};
+  Network network(&shape[0], sizeof(shape)/ sizeof(int), digitImages[0]);
   
+  network.forwardProp(&sigmoid);
   cout << "FIRST PASS" << endl;
-  cout << output << endl;
+  cout << network.output << endl;
 
-  output = forwardProp(&weightLayers[0], &biasLayers[0], &layerWidth[0], digitImages[0], layerCount);
-
+  network.forwardProp(&sigmoid);
   cout << "SECOND PASS" << endl;
-  cout << output << endl;
+  cout << network.output << endl;
   
   return 0;
-}
-
-VectorXd forwardProp(MatrixXd *weightLayers, VectorXd *biasLayers, int *layerWidth, VectorXd startLayer, int layerCount)
-{
-  for(int i = 0; i < layerCount; i++)
-  {
-    //if the matrix has not been made, fill it with random values
-    if(weightLayers[i].isZero(0))
-    {
-      weightLayers[i] = MatrixXd::Random(layerWidth[i], startLayer.rows());
-      biasLayers[i] = VectorXd::Random(layerWidth[i]);
-    }
-    
-    //propagate through a layer, and loop till all layers are complete
-    startLayer = (weightLayers[i] * startLayer) + biasLayers[i];
-    startLayer = startLayer.unaryExpr(&sigmoid);
-  }
-  return startLayer;
 }
 
 double sigmoid(double x)
