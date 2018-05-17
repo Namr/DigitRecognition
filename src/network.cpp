@@ -27,6 +27,10 @@ Network::Network(int *shape, int layerCount, VectorXd inputs)
   
 }
 
+//pushes data forward through the network, starts with the first layer
+//and multiplies the data layer by the wieghts and adds the biases of the next layer
+//that layer is now the new output, which is then multiplied by the weights and biases
+//of the next layer and so on, each layer also goes through an activation function which is passed
 void Network::forwardProp(double (*activation)(double))
 {
   output = input;
