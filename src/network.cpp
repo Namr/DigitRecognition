@@ -68,11 +68,14 @@ void Network::forwardProp(double (*activation)(double), double (*costFunc)(Vecto
 
 void Network::backProp(double (*activationPrime)(double), MatrixXd (*costFuncPrime)(VectorXd, VectorXd))
 {
+  //calculate the error of the input layer,
+  //based on the equation error = dirivitive of cost func * (element wise mult) the dirivitive of activation function(original weighted value)
   MatrixXd outputError = costFuncPrime(output, desiredOutput).array() * layers.back().weightedValue.unaryExpr(activationPrime).array();
   
   MatrixXd lastError = outputError;
   
-  //iterate back through the layers
+  //iterate back through the layers, and calculate their error in a similar way, based on the equation
+  //(transpose of the last weight matrix * last error) *(element wise) the dirivitive of activation function(original weighted value)
   for(int i = layers.size() - 2; i > 0; i--)
   { 
     MatrixXd layerError = (layers[i + 1].weights.transpose() * lastError).array() * layers[i].weightedValue.unaryExpr(activationPrime).array();
@@ -81,8 +84,10 @@ void Network::backProp(double (*activationPrime)(double), MatrixXd (*costFuncPri
     layers[i].weights -= layerError * layers[i-1].activatedValue.transpose();
     lastError = layerError;
   }
+  //last case is special because input layer is not included in layers list so it must be calculated alone
   int i = 0;
   MatrixXd layerError = (layers[i + 1].weights.transpose() * lastError).array() * layers[i].weightedValue.unaryExpr(activationPrime).array();
+
   layers[i].bias -= layerError;
   layers[i].weights -= layerError * input.transpose();
     
