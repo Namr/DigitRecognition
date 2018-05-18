@@ -17,7 +17,9 @@ class Layer
 public:
   MatrixXd weights;
   VectorXd bias;
-
+  VectorXd weightedValue;
+  VectorXd activatedValue;
+  
   Layer(int neuronCount, int inputLength);
 };
 
@@ -26,10 +28,16 @@ class Network
 public:
   int *layerShape;
   vector<Layer> layers;
+  
   VectorXd input;
   VectorXd output;
+  VectorXd desiredOutput;
+
+  double cost;
   
   Network(int *shape, int layerCount, VectorXd inputs);
-  void forwardProp(double (*activation)(double));
+  Network(int *shape, int layerCount, VectorXd inputs, VectorXd labledOutputs);
   
+  void forwardProp(double (*activation)(double), double (*costFunc)(VectorXd, VectorXd));
+  void backProp(double (*activationPrime)(double), MatrixXd (*costFuncPrime)(VectorXd, VectorXd));
 };
