@@ -33,18 +33,23 @@ int main(int argc, char **argv)
   int shape[] = {16, 16, 10};
   Network network(&shape[0], sizeof(shape)/ sizeof(int), digitImages[0], digitLabels[0]);
 
-  for(int i = 0; i < 100; i++)
+  for(int i = 0; i < 600; i++)
   {
     network.minibatch(&digitImages[0], &digitLabels[0], 3.0, i*10,10, sigmoid, quadraticCost, sigmoidPrime, quadraticCostPrime);
   }
-  network.setInput(digitImages[2000], digitLabels[2000]);
+  
+  network.setInput(digitImages[2001], digitLabels[2001]);
   network.forwardProp(&sigmoid, &quadraticCost);
+  
   cout << "TEST PASS" << endl;
   cout << network.output << endl;
 
   cout << "COST:" << endl;
   cout << network.cost << endl;
 
+  cout << "THE REAL DEAL" << endl;
+  cout << digitLabels[2001] << endl;
+  
   return 0;
 }
 
@@ -62,7 +67,7 @@ double quadraticCost(VectorXd givenOutput, VectorXd desiredOutput)
 
 double sigmoidPrime(double x)
 {
-  return sigmoid(x) * sigmoid(1 - x);
+  return sigmoid(x) * (1 - sigmoid(x));
 }
 
 MatrixXd quadraticCostPrime(VectorXd givenOutput, VectorXd desiredOutput)
@@ -153,7 +158,7 @@ vector<VectorXd> readDigitLabels(const char* filepath)
     endswap(&value);
 
     unsigned char label = reinterpret_cast<unsigned char&>(value[0]);
-    VectorXd output(10);
+    VectorXd output = VectorXd::Zero(10);
     output(label) = 1.0;
 
     labels.push_back(output);
