@@ -25,30 +25,26 @@ template <class T>
 void endswap(T *objp);
 
 int main(int argc, char **argv)
-{ 
+{
   //read digits from the database put them into Vectors
   vector<VectorXd> digitImages = readDigitImages("train-images.idx3-ubyte");
   vector<VectorXd> digitLabels = readDigitLabels("train-labels.idx1-ubyte");
-  
+
   int shape[] = {16, 16, 10};
   Network network(&shape[0], sizeof(shape)/ sizeof(int), digitImages[0], digitLabels[0]);
-  
+
+  for(int i = 0; i < 100; i++)
+  {
+    network.minibatch(&digitImages[0], &digitLabels[0], 3.0, i*10,10, sigmoid, quadraticCost, sigmoidPrime, quadraticCostPrime);
+  }
+  network.setInput(digitImages[2000], digitLabels[2000]);
   network.forwardProp(&sigmoid, &quadraticCost);
-  cout << "FIRST PASS" << endl;
+  cout << "TEST PASS" << endl;
   cout << network.output << endl;
-  
+
   cout << "COST:" << endl;
   cout << network.cost << endl;
 
-  network.backProp(&sigmoidPrime, &quadraticCostPrime);
-  
-  network.forwardProp(&sigmoid, &quadraticCost);
-  cout << "SECOND PASS" << endl;
-  cout << network.output << endl;
-  
-  cout << "COST:" << endl;
-  cout << network.cost << endl;
-  
   return 0;
 }
 
@@ -60,7 +56,7 @@ double sigmoid(double x)
 //same as, Cost = 1/2 * |y - aL|^2 where y is disired output and aL is actual output
 double quadraticCost(VectorXd givenOutput, VectorXd desiredOutput)
 {
-  MatrixXd difference = desiredOutput - givenOutput;
+  MatrixXd difference = givenOutput - desiredOutput;
   return difference.array().abs2().sum() * 0.5;
 }
 
@@ -117,8 +113,8 @@ vector<VectorXd> readDigitImages(const char* filepath)
         char pix[1];
         imageFile.read(pix, 1);
         endswap(&pix);
-	
-	//value inside the file is between 0 and 255, our net expected a value between 0 and 1
+
+        //value inside the file is between 0 and 255, our net expected a value between 0 and 1
         inputLayer((row * rowSize) + col) = (double) reinterpret_cast<unsigned char&>(pix[0]) / 255;
       }
     }
@@ -159,7 +155,7 @@ vector<VectorXd> readDigitLabels(const char* filepath)
     unsigned char label = reinterpret_cast<unsigned char&>(value[0]);
     VectorXd output(10);
     output(label) = 1.0;
-    
+
     labels.push_back(output);
   }
   return labels;
