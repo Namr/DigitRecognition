@@ -1,19 +1,17 @@
-#include <iostream>
-#include <stdio.h>
-#include <fstream>
 #include <algorithm>
 #include <cmath>
+#include <fstream>
+#include <iostream>
+#include <stdio.h>
 #include <vector>
 
-#include <Eigen/Dense>
 #include <Eigen/Core>
-
+#include <Eigen/Dense>
 
 using namespace Eigen;
 using namespace std;
 
-class Layer
-{
+class Layer {
 public:
   MatrixXd weights;
   VectorXd bias;
@@ -27,8 +25,7 @@ public:
   Layer(int neuronCount, int inputLength);
 };
 
-class Network
-{
+class Network {
 public:
   int *layerShape;
   vector<Layer> layers;
@@ -45,9 +42,14 @@ public:
   void setInput(VectorXd inputs);
   void setInput(VectorXd inputs, VectorXd outputs);
 
-  void forwardProp(double (*activation)(double), double (*costFunc)(VectorXd, VectorXd));
-  void backProp(double (*activationPrime)(double), MatrixXd (*costFuncPrime)(VectorXd, VectorXd));
-  void minibatch(VectorXd *inputs, VectorXd *labels, double learningRate,int trainingStart,int trainingSize,
-                 double (*activation)(double), double (*costFunc)(VectorXd, VectorXd), double (*activationPrime)(double), MatrixXd (*costFuncPrime)(VectorXd, VectorXd));
-
+  void forwardProp(double (*activation)(double),
+                   double (*costFunc)(VectorXd, VectorXd));
+  void backProp(double (*activationPrime)(double),
+                MatrixXd (*costFuncPrime)(VectorXd, VectorXd));
+  void minibatch(VectorXd *inputs, VectorXd *labels, double learningRate,
+                 int trainingStart, int trainingSize,
+                 double (*activation)(double),
+                 double (*costFunc)(VectorXd, VectorXd),
+                 double (*activationPrime)(double),
+                 MatrixXd (*costFuncPrime)(VectorXd, VectorXd));
 };
